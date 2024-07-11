@@ -30,12 +30,105 @@ def get_previous_day_high_low(symbol):
     else:
         return None, None
 
-# Get high and low prices for all currency pairs
+# Function to place a buy limit order
+def place_buy_limit(symbol, price, volume):
+    request = {
+        "action": mt5.TRADE_ACTION_PENDING,
+        "symbol": symbol,
+        "volume": volume,
+        "type": mt5.ORDER_TYPE_BUY_LIMIT,
+        "price": price,
+        "sl": price - 0.001,  # Stop loss 10 pips below the buy limit price
+        "tp": price + 0.001,  # Take profit 10 pips above the buy limit price
+        "deviation": 10,
+        "magic": 234000,
+        "comment": "Python script buy limit",
+        "type_time": mt5.ORDER_TIME_GTC,
+        "type_filling": mt5.ORDER_FILLING_RETURN,
+    }
+    result = mt5.order_send(request)
+    return result
+
+# Function to place a sell limit order
+def place_sell_limit(symbol, price, volume):
+    request = {
+        "action": mt5.TRADE_ACTION_PENDING,
+        "symbol": symbol,
+        "volume": volume,
+        "type": mt5.ORDER_TYPE_SELL_LIMIT,
+        "price": price,
+        "sl": price + 0.001,  # Stop loss 10 pips above the sell limit price
+        "tp": price - 0.001,  # Take profit 10 pips below the sell limit price
+        "deviation": 10,
+        "magic": 234000,
+        "comment": "Python script sell limit",
+        "type_time": mt5.ORDER_TIME_GTC,
+        "type_filling": mt5.ORDER_FILLING_RETURN,
+    }
+    result = mt5.order_send(request)
+    return result
+
+# Function to place a buy stop order
+def place_buy_stop(symbol, price, volume):
+    request = {
+        "action": mt5.TRADE_ACTION_PENDING,
+        "symbol": symbol,
+        "volume": volume,
+        "type": mt5.ORDER_TYPE_BUY_STOP,
+        "price": price,
+        "sl": price - 0.001,  # Stop loss 10 pips below the buy stop price
+        "tp": price + 0.001,  # Take profit 10 pips above the buy stop price
+        "deviation": 10,
+        "magic": 234000,
+        "comment": "Python script buy stop",
+        "type_time": mt5.ORDER_TIME_GTC,
+        "type_filling": mt5.ORDER_FILLING_RETURN,
+    }
+    result = mt5.order_send(request)
+    return result
+
+# Function to place a sell stop order
+def place_sell_stop(symbol, price, volume):
+    request = {
+        "action": mt5.TRADE_ACTION_PENDING,
+        "symbol": symbol,
+        "volume": volume,
+        "type": mt5.ORDER_TYPE_SELL_STOP,
+        "price": price,
+        "sl": price + 0.001,  # Stop loss 10 pips above the sell stop price
+        "tp": price - 0.001,  # Take profit 10 pips below the sell stop price
+        "deviation": 10,
+        "magic": 234000,
+        "comment": "Python script sell stop",
+        "type_time": mt5.ORDER_TIME_GTC,
+        "type_filling": mt5.ORDER_FILLING_RETURN,
+    }
+    result = mt5.order_send(request)
+    return result
+
+# Get high and low prices for all currency pairs and place orders
+volume = 0.1  # Define the trade volume
 results = {}
 for pair in currency_pairs:
     high, low = get_previous_day_high_low(pair)
     if high is not None and low is not None:
         results[pair] = {'High': high, 'Low': low}
+
+        # Place Buy Limit order at previous day's low price
+        buy_limit_result = place_buy_limit(pair, low, volume)
+        print(f"Buy Limit for {pair} at {low}: {buy_limit_result}")
+
+        # Place Sell Limit order at previous day's high price
+        sell_limit_result = place_sell_limit(pair, high, volume)
+        print(f"Sell Limit for {pair} at {high}: {sell_limit_result}")
+
+        # Place Buy Stop order at previous day's high price
+        buy_stop_result = place_buy_stop(pair, high, volume)
+        print(f"Buy Stop for {pair} at {high}: {buy_stop_result}")
+
+        # Place Sell Stop order at previous day's low price
+        sell_stop_result = place_sell_stop(pair, low, volume)
+        print(f"Sell Stop for {pair} at {low}: {sell_stop_result}")
     else:
         results[pair] = {'High': 'N/A', 'Low': 'N/A'}
 
