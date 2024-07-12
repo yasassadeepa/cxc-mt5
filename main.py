@@ -1,6 +1,7 @@
 import MetaTrader5 as mt5
 from datetime import datetime, timedelta
 import pandas as pd
+import time
 
 # Initialize the MetaTrader5 package
 if not mt5.initialize():
@@ -14,12 +15,10 @@ currency_pairs = [
 
 # Function to get the previous day's high and low prices
 def get_previous_day_high_low(symbol):
-    # Get yesterday's date
     yesterday = datetime.now() - timedelta(1)
     start = datetime(yesterday.year, yesterday.month, yesterday.day, 0, 0)
     end = datetime(yesterday.year, yesterday.month, yesterday.day, 23, 59)
 
-    # Get the historical data for the previous day
     rates = mt5.copy_rates_range(symbol, mt5.TIMEFRAME_H1, start, end)
     
     if rates is not None and len(rates) > 0:
@@ -32,12 +31,10 @@ def get_previous_day_high_low(symbol):
 
 # Function to get the previous Asia session's high and low prices
 def get_previous_asia_session_high_low(symbol):
-    # Define the Asia session time range (00:00 to 09:00 GMT)
     today = datetime.now()
     start = datetime(today.year, today.month, today.day, 0, 0) - timedelta(1)
     end = datetime(today.year, today.month, today.day, 9, 0) - timedelta(1)
     
-    # Get the historical data for the previous Asia session
     rates = mt5.copy_rates_range(symbol, mt5.TIMEFRAME_H1, start, end)
     
     if rates is not None and len(rates) > 0:
@@ -56,8 +53,8 @@ def place_buy_limit(symbol, price, volume):
         "volume": volume,
         "type": mt5.ORDER_TYPE_BUY_LIMIT,
         "price": price,
-        "sl": price - 0.001,  # Stop loss 10 pips below the buy limit price
-        "tp": price + 0.001,  # Take profit 10 pips above the buy limit price
+        "sl": price - 0.001,  # Initial Stop loss 10 pips below the buy limit price
+        "tp": price + 0.006,  # Initial Take profit 60 pips above the buy limit price
         "deviation": 10,
         "magic": 234000,
         "comment": "Python script buy limit",
@@ -75,8 +72,8 @@ def place_sell_limit(symbol, price, volume):
         "volume": volume,
         "type": mt5.ORDER_TYPE_SELL_LIMIT,
         "price": price,
-        "sl": price + 0.001,  # Stop loss 10 pips above the sell limit price
-        "tp": price - 0.001,  # Take profit 10 pips below the sell limit price
+        "sl": price + 0.001,  # Initial Stop loss 10 pips above the sell limit price
+        "tp": price - 0.006,  # Initial Take profit 60 pips below the sell limit price
         "deviation": 10,
         "magic": 234000,
         "comment": "Python script sell limit",
@@ -94,8 +91,8 @@ def place_buy_stop(symbol, price, volume):
         "volume": volume,
         "type": mt5.ORDER_TYPE_BUY_STOP,
         "price": price,
-        "sl": price - 0.001,  # Stop loss 10 pips below the buy stop price
-        "tp": price + 0.001,  # Take profit 10 pips above the buy stop price
+        "sl": price - 0.001,  # Initial Stop loss 10 pips below the buy stop price
+        "tp": price + 0.006,  # Initial Take profit 60 pips above the buy stop price
         "deviation": 10,
         "magic": 234000,
         "comment": "Python script buy stop",
@@ -113,8 +110,8 @@ def place_sell_stop(symbol, price, volume):
         "volume": volume,
         "type": mt5.ORDER_TYPE_SELL_STOP,
         "price": price,
-        "sl": price + 0.001,  # Stop loss 10 pips above the sell stop price
-        "tp": price - 0.001,  # Take profit 10 pips below the sell stop price
+        "sl": price + 0.001,  # Initial Stop loss 10 pips above the sell stop price
+        "tp": price - 0.006,  # Initial Take profit 60 pips below the sell stop price
         "deviation": 10,
         "magic": 234000,
         "comment": "Python script sell stop",
@@ -123,6 +120,29 @@ def place_sell_stop(symbol, price, volume):
     }
     result = mt5.order_send(request)
     return result
+
+# Function to adjust stop loss and take profit based on the given conditions
+def adjust_sl_tp():
+    positions = mt5.positions_get()
+    for pos in positions:
+        symbol = pos.symbol
+        ticket = pos.ticket
+        order_type = pos.type
+        open_price = pos.price_open
+        current_price = mt5.symbol_info_tick(symbol).bid if order_type == mt5.ORDER_TYPE_BUY else mt5.symbol_info_tick(symbol).ask
+        profit = (current_price - open_price) if order_type == mt5.ORDER_TYPE_BUY else (open_price - current_price)
+        profit_pips = profit * 10000  # Convert profit to pips
+
+        if profit_pips >= 60:
+            mt5.order_close(ticket, pos.volume)
+        elif profit_pips >= 50:
+            sl_price = open_price + 0.003 if order_type == mt5.ORDER_TYPE_BUY else open_price - 0.003
+            mt5.order_modify(ticket, sl=sl_price)
+        elif profit_pips >= 20:
+            sl_price = open_price + 0.001 if order_type == mt5.ORDER_TYPE_BUY else open_price - 0.001
+            mt5.order_modify(ticket, sl=sl_price)
+        elif profit_pips >= 10:
+            mt5.order_modify(ticket, sl=open_price)
 
 # Get high and low prices for all currency pairs and place orders
 volume = 0.1  # Define the trade volume
@@ -135,19 +155,19 @@ for pair in currency_pairs:
 
         # Place Buy Limit order at previous day's low price
         buy_limit_result = place_buy_limit(pair, low, volume)
-        print(f"Buy Limit for {pair} at {low}: {buy_limit_result}")
+        # print(f"Buy Limit for {pair} at {low}: {buy_limit_result}")
 
         # Place Sell Limit order at previous day's high price
         sell_limit_result = place_sell_limit(pair, high, volume)
-        print(f"Sell Limit for {pair} at {high}: {sell_limit_result}")
+        # print(f"Sell Limit for {pair} at {high}: {sell_limit_result}")
 
         # Place Buy Stop order at previous day's high price
         buy_stop_result = place_buy_stop(pair, high, volume)
-        print(f"Buy Stop for {pair} at {high}: {buy_stop_result}")
+        # print(f"Buy Stop for {pair} at {high}: {buy_stop_result}")
 
         # Place Sell Stop order at previous day's low price
         sell_stop_result = place_sell_stop(pair, low, volume)
-        print(f"Sell Stop for {pair} at {low}: {sell_stop_result}")
+        # print(f"Sell Stop for {pair} at {low}: {sell_stop_result}")
     else:
         results[pair] = {'Day_High': 'N/A', 'Day_Low': 'N/A'}
 
@@ -158,25 +178,30 @@ for pair in currency_pairs:
 
         # Place Buy Limit order at previous Asia session's low price
         buy_limit_result = place_buy_limit(pair, asia_low, volume)
-        print(f"Buy Limit for {pair} at {asia_low} (Asia session): {buy_limit_result}")
+        # print(f"Buy Limit for {pair} at {asia_low} (Asia session): {buy_limit_result}")
 
         # Place Sell Limit order at previous Asia session's high price
         sell_limit_result = place_sell_limit(pair, asia_high, volume)
-        print(f"Sell Limit for {pair} at {asia_high} (Asia session): {sell_limit_result}")
+        # print(f"Sell Limit for {pair} at {asia_high} (Asia session): {sell_limit_result}")
 
         # Place Buy Stop order at previous Asia session's high price
         buy_stop_result = place_buy_stop(pair, asia_high, volume)
-        print(f"Buy Stop for {pair} at {asia_high} (Asia session): {buy_stop_result}")
+        # print(f"Buy Stop for {pair} at {asia_high} (Asia session): {buy_stop_result}")
 
         # Place Sell Stop order at previous Asia session's low price
         sell_stop_result = place_sell_stop(pair, asia_low, volume)
-        print(f"Sell Stop for {pair} at {asia_low} (Asia session): {sell_stop_result}")
+        # print(f"Sell Stop for {pair} at {asia_low} (Asia session): {sell_stop_result}")
     else:
         results[pair].update({'Asia_High': 'N/A', 'Asia_Low': 'N/A'})
 
 # Print the results
 for pair, prices in results.items():
     print(f"{pair} - Day High: {prices['Day_High']}, Day Low: {prices['Day_Low']}, Asia High: {prices['Asia_High']}, Asia Low: {prices['Asia_Low']}")
+
+# Periodically adjust SL and TP based on the given conditions
+while True:
+    adjust_sl_tp()
+    time.sleep(10)  # Adjust every 60 seconds
 
 # Shutdown MetaTrader5 connection
 mt5.shutdown()
