@@ -30,6 +30,24 @@ def get_previous_day_high_low(symbol):
     else:
         return None, None
 
+# Function to get the previous Asia session's high and low prices
+def get_previous_asia_session_high_low(symbol):
+    # Define the Asia session time range (00:00 to 09:00 GMT)
+    today = datetime.now()
+    start = datetime(today.year, today.month, today.day, 0, 0) - timedelta(1)
+    end = datetime(today.year, today.month, today.day, 9, 0) - timedelta(1)
+    
+    # Get the historical data for the previous Asia session
+    rates = mt5.copy_rates_range(symbol, mt5.TIMEFRAME_H1, start, end)
+    
+    if rates is not None and len(rates) > 0:
+        df = pd.DataFrame(rates)
+        high = df['high'].max()
+        low = df['low'].min()
+        return high, low
+    else:
+        return None, None
+
 # Function to place a buy limit order
 def place_buy_limit(symbol, price, volume):
     request = {
@@ -110,9 +128,10 @@ def place_sell_stop(symbol, price, volume):
 volume = 0.1  # Define the trade volume
 results = {}
 for pair in currency_pairs:
+    # Get previous day's high and low prices
     high, low = get_previous_day_high_low(pair)
     if high is not None and low is not None:
-        results[pair] = {'High': high, 'Low': low}
+        results[pair] = {'Day_High': high, 'Day_Low': low}
 
         # Place Buy Limit order at previous day's low price
         buy_limit_result = place_buy_limit(pair, low, volume)
@@ -130,11 +149,34 @@ for pair in currency_pairs:
         sell_stop_result = place_sell_stop(pair, low, volume)
         print(f"Sell Stop for {pair} at {low}: {sell_stop_result}")
     else:
-        results[pair] = {'High': 'N/A', 'Low': 'N/A'}
+        results[pair] = {'Day_High': 'N/A', 'Day_Low': 'N/A'}
+
+    # Get previous Asia session's high and low prices
+    asia_high, asia_low = get_previous_asia_session_high_low(pair)
+    if asia_high is not None and asia_low is not None:
+        results[pair].update({'Asia_High': asia_high, 'Asia_Low': asia_low})
+
+        # Place Buy Limit order at previous Asia session's low price
+        buy_limit_result = place_buy_limit(pair, asia_low, volume)
+        print(f"Buy Limit for {pair} at {asia_low} (Asia session): {buy_limit_result}")
+
+        # Place Sell Limit order at previous Asia session's high price
+        sell_limit_result = place_sell_limit(pair, asia_high, volume)
+        print(f"Sell Limit for {pair} at {asia_high} (Asia session): {sell_limit_result}")
+
+        # Place Buy Stop order at previous Asia session's high price
+        buy_stop_result = place_buy_stop(pair, asia_high, volume)
+        print(f"Buy Stop for {pair} at {asia_high} (Asia session): {buy_stop_result}")
+
+        # Place Sell Stop order at previous Asia session's low price
+        sell_stop_result = place_sell_stop(pair, asia_low, volume)
+        print(f"Sell Stop for {pair} at {asia_low} (Asia session): {sell_stop_result}")
+    else:
+        results[pair].update({'Asia_High': 'N/A', 'Asia_Low': 'N/A'})
 
 # Print the results
 for pair, prices in results.items():
-    print(f"{pair} - High: {prices['High']}, Low: {prices['Low']}")
+    print(f"{pair} - Day High: {prices['Day_High']}, Day Low: {prices['Day_Low']}, Asia High: {prices['Asia_High']}, Asia Low: {prices['Asia_Low']}")
 
 # Shutdown MetaTrader5 connection
 mt5.shutdown()
