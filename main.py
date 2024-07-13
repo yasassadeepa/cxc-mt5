@@ -2,6 +2,7 @@ import MetaTrader5 as mt5
 from datetime import datetime, timedelta
 import pandas as pd
 import time
+import schedule
 
 # Initialize the MetaTrader5 package
 if not mt5.initialize():
@@ -29,11 +30,11 @@ def get_previous_day_high_low(symbol):
     else:
         return None, None
 
-# Function to get the previous Asia session's high and low prices
+# Function to get the previous Asia session's high and low prices (2:30 AM to 10:30 AM)
 def get_previous_asia_session_high_low(symbol):
     today = datetime.now()
-    start = datetime(today.year, today.month, today.day, 0, 0) - timedelta(1)
-    end = datetime(today.year, today.month, today.day, 9, 0) - timedelta(1)
+    start = datetime(today.year, today.month, today.day, 2, 30)
+    end = datetime(today.year, today.month, today.day, 10, 30)
     
     rates = mt5.copy_rates_range(symbol, mt5.TIMEFRAME_H1, start, end)
     
@@ -135,73 +136,73 @@ def adjust_sl_tp():
 
         if profit_pips >= 60:
             mt5.order_close(ticket, pos.volume)
-        elif profit_pips >= 50:
-            sl_price = open_price + 0.003 if order_type == mt5.ORDER_TYPE_BUY else open_price - 0.003
+        elif profit_pips >= 30:
+            sl_price = open_price + 0.0029 if order_type == mt5.ORDER_TYPE_BUY else open_price - 0.0029
             mt5.order_modify(ticket, sl=sl_price)
         elif profit_pips >= 20:
             sl_price = open_price + 0.001 if order_type == mt5.ORDER_TYPE_BUY else open_price - 0.001
             mt5.order_modify(ticket, sl=sl_price)
         elif profit_pips >= 10:
-            mt5.order_modify(ticket, sl=open_price)
+            sl_price = open_price + 0.0005 if order_type == mt5.ORDER_TYPE_BUY else open_price - 0.0005
+            mt5.order_modify(ticket, sl=sl_price)
 
-# Get high and low prices for all currency pairs and place orders
-volume = 0.1  # Define the trade volume
-results = {}
-for pair in currency_pairs:
-    # Get previous day's high and low prices
-    high, low = get_previous_day_high_low(pair)
-    if high is not None and low is not None:
-        results[pair] = {'Day_High': high, 'Day_Low': low}
+# Function to delete pending orders scheduled for 1 AM
+def delete_pending_orders_at_1am():
+    orders = mt5.orders_get()
+    for order in orders:
+        if order.type_time == mt5.ORDER_TIME_SPECIFIED and order.time_setup.hour == 1:
+            mt5.order_delete(order.ticket)
 
-        # Place Buy Limit order at previous day's low price
-        buy_limit_result = place_buy_limit(pair, low, volume)
-        # print(f"Buy Limit for {pair} at {low}: {buy_limit_result}")
+# Function to schedule tasks
+def schedule_tasks():
+    # Schedule get_previous_day_high_low at 3:00 AM
+    schedule.every().day.at("03:00").do(run_get_previous_day_high_low)
 
-        # Place Sell Limit order at previous day's high price
-        sell_limit_result = place_sell_limit(pair, high, volume)
-        # print(f"Sell Limit for {pair} at {high}: {sell_limit_result}")
+    # Schedule get_previous_asia_session_high_low at 10:30 AM
+    schedule.every().day.at("10:30").do(run_get_previous_asia_session_high_low)
 
-        # Place Buy Stop order at previous day's high price
-        buy_stop_result = place_buy_stop(pair, high, volume)
-        # print(f"Buy Stop for {pair} at {high}: {buy_stop_result}")
+    # Schedule delete_pending_orders_at_1am at 1:00 AM
+    schedule.every().day.at("01:00").do(delete_pending_orders_at_1am)
 
-        # Place Sell Stop order at previous day's low price
-        sell_stop_result = place_sell_stop(pair, low, volume)
-        # print(f"Sell Stop for {pair} at {low}: {sell_stop_result}")
-    else:
-        results[pair] = {'Day_High': 'N/A', 'Day_Low': 'N/A'}
+# Function to run get_previous_day_high_low and place trades
+def run_get_previous_day_high_low():
+    for pair in currency_pairs:
+        current_price = mt5.symbol_info_tick(pair).bid
+        day_high, day_low = get_previous_day_high_low(pair)
+        if day_high is not None and day_low is not None:
+            if day_low <= current_price <= day_high:
+                place_buy_limit(pair, day_low, 0.1)
+                place_sell_limit(pair, day_high, 0.1)
+                place_buy_stop(pair, day_high, 0.1)
+                place_sell_stop(pair, day_low, 0.1)
+            else:
+                print(f"Current price ({current_price}) is outside previous day's range for {pair}. No orders placed.")
+        else:
+            print(f"Failed to retrieve previous day's high and low for {pair}.")
 
-    # Get previous Asia session's high and low prices
-    asia_high, asia_low = get_previous_asia_session_high_low(pair)
-    if asia_high is not None and asia_low is not None:
-        results[pair].update({'Asia_High': asia_high, 'Asia_Low': asia_low})
+# Function to run get_previous_asia_session_high_low and place trades
+def run_get_previous_asia_session_high_low():
+    for pair in currency_pairs:
+        current_price = mt5.symbol_info_tick(pair).bid
+        asia_high, asia_low = get_previous_asia_session_high_low(pair)
+        if asia_high is not None and asia_low is not None:
+            if asia_low <= current_price <= asia_high:
+                place_buy_limit(pair, asia_low, 0.1)
+                place_sell_limit(pair, asia_high, 0.1)
+                place_buy_stop(pair, asia_high, 0.1)
+                place_sell_stop(pair, asia_low, 0.1)
+            else:
+                print(f"Current price ({current_price}) is outside Asia session's range for {pair}. No orders placed.")
+        else:
+            print(f"Failed to retrieve previous Asia session's high and low for {pair}.")
 
-        # Place Buy Limit order at previous Asia session's low price
-        buy_limit_result = place_buy_limit(pair, asia_low, volume)
-        # print(f"Buy Limit for {pair} at {asia_low} (Asia session): {buy_limit_result}")
+# Initial schedule tasks
+schedule_tasks()
 
-        # Place Sell Limit order at previous Asia session's high price
-        sell_limit_result = place_sell_limit(pair, asia_high, volume)
-        # print(f"Sell Limit for {pair} at {asia_high} (Asia session): {sell_limit_result}")
-
-        # Place Buy Stop order at previous Asia session's high price
-        buy_stop_result = place_buy_stop(pair, asia_high, volume)
-        # print(f"Buy Stop for {pair} at {asia_high} (Asia session): {buy_stop_result}")
-
-        # Place Sell Stop order at previous Asia session's low price
-        sell_stop_result = place_sell_stop(pair, asia_low, volume)
-        # print(f"Sell Stop for {pair} at {asia_low} (Asia session): {sell_stop_result}")
-    else:
-        results[pair].update({'Asia_High': 'N/A', 'Asia_Low': 'N/A'})
-
-# Print the results
-for pair, prices in results.items():
-    print(f"{pair} - Day High: {prices['Day_High']}, Day Low: {prices['Day_Low']}, Asia High: {prices['Asia_High']}, Asia Low: {prices['Asia_Low']}")
-
-# Periodically adjust SL and TP based on the given conditions
+# Run the scheduler in a loop
 while True:
-    adjust_sl_tp()
-    time.sleep(10)  # Adjust every 60 seconds
+    schedule.run_pending()
+    time.sleep(1)
 
-# Shutdown MetaTrader5 connection
+# Shutdown MetaTrader5 connection (Note: This part won't be reached in the loop above)
 mt5.shutdown()
