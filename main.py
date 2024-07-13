@@ -9,15 +9,33 @@ if not mt5.initialize():
     print("initialize() failed")
     mt5.shutdown()
 
-# Function to get user inputs
+# Function to read configuration from a text file
+def read_config_file(filename):
+    config = {}
+    with open(filename, 'r') as file:
+        lines = file.readlines()
+        for line in lines:
+            key, value = line.strip().split('=')
+            config[key] = value
+    return config
+
+# Function to get user inputs with defaults from config file
 def get_user_inputs():
     global currency_pairs, day_high_low_time, asia_high_low_time, delete_orders_time, lot_size
 
-    currency_pairs = input("Enter the currency pairs (comma-separated, e.g., EURUSD,GBPUSD,USDJPY): ").split(',')
-    day_high_low_time = input("Enter the time to get previous day high/low (e.g., 03:00): ")
-    asia_high_low_time = input("Enter the time to get Asia session high/low (e.g., 10:30): ")
-    delete_orders_time = input("Enter the time to delete pending orders (e.g., 01:00): ")
-    lot_size = float(input("Enter the lot size for orders (e.g., 0.1): "))
+    config = read_config_file('config.txt')
+
+    currency_pairs = input(f"Enter the currency pairs (default: {config['currency_pairs']}): ") or config['currency_pairs']
+    currency_pairs = currency_pairs.split(',')
+    
+    day_high_low_time = input(f"Enter the time to get previous day high/low (default: {config['day_high_low_time']}): ") or config['day_high_low_time']
+    
+    asia_high_low_time = input(f"Enter the time to get Asia session high/low (default: {config['asia_high_low_time']}): ") or config['asia_high_low_time']
+    
+    delete_orders_time = input(f"Enter the time to delete pending orders (default: {config['delete_orders_time']}): ") or config['delete_orders_time']
+    
+    lot_size = input(f"Enter the lot size for orders (default: {config['lot_size']}): ") or config['lot_size']
+    lot_size = float(lot_size)
 
 # Function to get the previous day's high and low prices
 def get_previous_day_high_low(symbol):
