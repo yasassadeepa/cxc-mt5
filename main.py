@@ -9,10 +9,33 @@ if not mt5.initialize():
     print("initialize() failed")
     mt5.shutdown()
 
-# Define the list of currency pairs you are interested in
-currency_pairs = [
-    'EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD'
-]
+# Function to read configuration from a text file
+def read_config_file(filename):
+    config = {}
+    with open(filename, 'r') as file:
+        lines = file.readlines()
+        for line in lines:
+            key, value = line.strip().split('=')
+            config[key] = value
+    return config
+
+# Function to get user inputs with defaults from config file
+def get_user_inputs():
+    global currency_pairs, day_high_low_time, asia_high_low_time, delete_orders_time, lot_size
+
+    config = read_config_file('config.txt')
+
+    currency_pairs = input(f"Enter the currency pairs (default: {config['currency_pairs']}): ") or config['currency_pairs']
+    currency_pairs = currency_pairs.split(',')
+    
+    day_high_low_time = input(f"Enter the time to get previous day high/low (default: {config['day_high_low_time']}): ") or config['day_high_low_time']
+    
+    asia_high_low_time = input(f"Enter the time to get Asia session high/low (default: {config['asia_high_low_time']}): ") or config['asia_high_low_time']
+    
+    delete_orders_time = input(f"Enter the time to delete pending orders (default: {config['delete_orders_time']}): ") or config['delete_orders_time']
+    
+    lot_size = input(f"Enter the lot size for orders (default: {config['lot_size']}): ") or config['lot_size']
+    lot_size = float(lot_size)
 
 # Function to get the previous day's high and low prices
 def get_previous_day_high_low(symbol):
@@ -155,14 +178,14 @@ def delete_pending_orders_at_1am():
 
 # Function to schedule tasks
 def schedule_tasks():
-    # Schedule get_previous_day_high_low at 3:00 AM
-    schedule.every().day.at("03:00").do(run_get_previous_day_high_low)
+    # Schedule get_previous_day_high_low at user-defined time
+    schedule.every().day.at(day_high_low_time).do(run_get_previous_day_high_low)
 
-    # Schedule get_previous_asia_session_high_low at 10:30 AM
-    schedule.every().day.at("10:30").do(run_get_previous_asia_session_high_low)
+    # Schedule get_previous_asia_session_high_low at user-defined time
+    schedule.every().day.at(asia_high_low_time).do(run_get_previous_asia_session_high_low)
 
-    # Schedule delete_pending_orders_at_1am at 1:00 AM
-    schedule.every().day.at("01:00").do(delete_pending_orders_at_1am)
+    # Schedule delete_pending_orders_at_1am at user-defined time
+    schedule.every().day.at(delete_orders_time).do(delete_pending_orders_at_1am)
 
 # Function to run get_previous_day_high_low and place trades
 def run_get_previous_day_high_low():
@@ -171,10 +194,10 @@ def run_get_previous_day_high_low():
         day_high, day_low = get_previous_day_high_low(pair)
         if day_high is not None and day_low is not None:
             if day_low <= current_price <= day_high:
-                place_buy_limit(pair, day_low, 0.1)
-                place_sell_limit(pair, day_high, 0.1)
-                place_buy_stop(pair, day_high, 0.1)
-                place_sell_stop(pair, day_low, 0.1)
+                place_buy_limit(pair, day_low, lot_size)
+                place_sell_limit(pair, day_high, lot_size)
+                place_buy_stop(pair, day_high, lot_size)
+                place_sell_stop(pair, day_low, lot_size)
             else:
                 print(f"Current price ({current_price}) is outside previous day's range for {pair}. No orders placed.")
         else:
@@ -187,14 +210,17 @@ def run_get_previous_asia_session_high_low():
         asia_high, asia_low = get_previous_asia_session_high_low(pair)
         if asia_high is not None and asia_low is not None:
             if asia_low <= current_price <= asia_high:
-                place_buy_limit(pair, asia_low, 0.1)
-                place_sell_limit(pair, asia_high, 0.1)
-                place_buy_stop(pair, asia_high, 0.1)
-                place_sell_stop(pair, asia_low, 0.1)
+                place_buy_limit(pair, asia_low, lot_size)
+                place_sell_limit(pair, asia_high, lot_size)
+                place_buy_stop(pair, asia_high, lot_size)
+                place_sell_stop(pair, asia_low, lot_size)
             else:
                 print(f"Current price ({current_price}) is outside Asia session's range for {pair}. No orders placed.")
         else:
             print(f"Failed to retrieve previous Asia session's high and low for {pair}.")
+
+# Get user inputs
+get_user_inputs()
 
 # Initial schedule tasks
 schedule_tasks()
