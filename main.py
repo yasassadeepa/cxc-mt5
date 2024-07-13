@@ -146,6 +146,13 @@ def adjust_sl_tp():
             sl_price = open_price + 0.0005 if order_type == mt5.ORDER_TYPE_BUY else open_price - 0.0005
             mt5.order_modify(ticket, sl=sl_price)
 
+# Function to delete pending orders scheduled for 1 AM
+def delete_pending_orders_at_1am():
+    orders = mt5.orders_get()
+    for order in orders:
+        if order.type_time == mt5.ORDER_TIME_SPECIFIED and order.time_setup.hour == 1:
+            mt5.order_delete(order.ticket)
+
 # Function to schedule tasks
 def schedule_tasks():
     # Schedule get_previous_day_high_low at 3:00 AM
@@ -153,6 +160,9 @@ def schedule_tasks():
 
     # Schedule get_previous_asia_session_high_low at 10:30 AM
     schedule.every().day.at("10:30").do(run_get_previous_asia_session_high_low)
+
+    # Schedule delete_pending_orders_at_1am at 1:00 AM
+    schedule.every().day.at("01:00").do(delete_pending_orders_at_1am)
 
 # Function to run get_previous_day_high_low and place trades
 def run_get_previous_day_high_low():
