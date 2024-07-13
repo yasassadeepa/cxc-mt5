@@ -157,24 +157,34 @@ def schedule_tasks():
 # Function to run get_previous_day_high_low and place trades
 def run_get_previous_day_high_low():
     for pair in currency_pairs:
-        high, low = get_previous_day_high_low(pair)
-        if high is not None and low is not None:
-            # Place orders based on high and low prices
-            place_buy_limit(pair, low, 0.1)
-            place_sell_limit(pair, high, 0.1)
-            place_buy_stop(pair, high, 0.1)
-            place_sell_stop(pair, low, 0.1)
+        current_price = mt5.symbol_info_tick(pair).bid
+        day_high, day_low = get_previous_day_high_low(pair)
+        if day_high is not None and day_low is not None:
+            if day_low <= current_price <= day_high:
+                place_buy_limit(pair, day_low, 0.1)
+                place_sell_limit(pair, day_high, 0.1)
+                place_buy_stop(pair, day_high, 0.1)
+                place_sell_stop(pair, day_low, 0.1)
+            else:
+                print(f"Current price ({current_price}) is outside previous day's range for {pair}. No orders placed.")
+        else:
+            print(f"Failed to retrieve previous day's high and low for {pair}.")
 
 # Function to run get_previous_asia_session_high_low and place trades
 def run_get_previous_asia_session_high_low():
     for pair in currency_pairs:
+        current_price = mt5.symbol_info_tick(pair).bid
         asia_high, asia_low = get_previous_asia_session_high_low(pair)
         if asia_high is not None and asia_low is not None:
-            # Place orders based on Asia session high and low prices
-            place_buy_limit(pair, asia_low, 0.1)
-            place_sell_limit(pair, asia_high, 0.1)
-            place_buy_stop(pair, asia_high, 0.1)
-            place_sell_stop(pair, asia_low, 0.1)
+            if asia_low <= current_price <= asia_high:
+                place_buy_limit(pair, asia_low, 0.1)
+                place_sell_limit(pair, asia_high, 0.1)
+                place_buy_stop(pair, asia_high, 0.1)
+                place_sell_stop(pair, asia_low, 0.1)
+            else:
+                print(f"Current price ({current_price}) is outside Asia session's range for {pair}. No orders placed.")
+        else:
+            print(f"Failed to retrieve previous Asia session's high and low for {pair}.")
 
 # Initial schedule tasks
 schedule_tasks()
