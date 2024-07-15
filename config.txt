@@ -2,4 +2,4 @@ currency_pairs=EURUSD,GBPUSD,USDJPY
 day_high_low_time=03:00
 asia_high_low_time=10:30
 delete_orders_time=01:00
-lot_size=0.1
+lot_size=10.0

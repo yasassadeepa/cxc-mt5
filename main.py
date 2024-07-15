@@ -37,11 +37,25 @@ def get_user_inputs():
     lot_size = input(f"Enter the lot size for orders (default: {config['lot_size']}): ") or config['lot_size']
     lot_size = float(lot_size)
 
-# Function to get the previous day's high and low prices
+# Function to get the previous day's high and low prices, considering weekends
 def get_previous_day_high_low(symbol):
-    yesterday = datetime.now() - timedelta(1)
-    start = datetime(yesterday.year, yesterday.month, yesterday.day, 0, 0)
-    end = datetime(yesterday.year, yesterday.month, yesterday.day, 23, 59)
+    now = datetime.now()
+    end = now.replace(hour=2, minute=30, second=0, microsecond=0)
+    if now < end:
+        end -= timedelta(days=1)
+    
+    # Skip weekends
+    while end.weekday() > 4:  # 5: Saturday, 6: Sunday
+        end -= timedelta(days=1)
+
+    start = end - timedelta(days=1)
+    start = start.replace(hour=2, minute=30, second=0, microsecond=0)
+    
+    # Skip weekends
+    while start.weekday() > 4:  # 5: Saturday, 6: Sunday
+        start -= timedelta(days=1)
+
+    print(f"Fetching data for {symbol} from {start} to {end}")
 
     rates = mt5.copy_rates_range(symbol, mt5.TIMEFRAME_H1, start, end)
     
@@ -51,6 +65,7 @@ def get_previous_day_high_low(symbol):
         low = df['low'].min()
         return high, low
     else:
+        print(f"No data retrieved for {symbol} in the given date range.")
         return None, None
 
 # Function to get the previous Asia session's high and low prices (2:30 AM to 10:30 AM)
@@ -58,7 +73,8 @@ def get_previous_asia_session_high_low(symbol):
     today = datetime.now()
     start = datetime(today.year, today.month, today.day, 2, 30)
     end = datetime(today.year, today.month, today.day, 10, 30)
-    
+    print(f"Fetching data for {symbol} from {start} to {end}")
+
     rates = mt5.copy_rates_range(symbol, mt5.TIMEFRAME_H1, start, end)
     
     if rates is not None and len(rates) > 0:
@@ -67,6 +83,7 @@ def get_previous_asia_session_high_low(symbol):
         low = df['low'].min()
         return high, low
     else:
+        print(f"No data retrieved for {symbol} in the given date range.")
         return None, None
 
 # Function to place a buy limit order
@@ -178,13 +195,13 @@ def delete_pending_orders_at_1am():
 
 # Function to schedule tasks
 def schedule_tasks():
-    # Schedule get_previous_day_high_low at user-defined time
+    # Schedule get_previous_day_high_low at the specified time
     schedule.every().day.at(day_high_low_time).do(run_get_previous_day_high_low)
 
-    # Schedule get_previous_asia_session_high_low at user-defined time
+    # Schedule get_previous_asia_session_high_low at the specified time
     schedule.every().day.at(asia_high_low_time).do(run_get_previous_asia_session_high_low)
 
-    # Schedule delete_pending_orders_at_1am at user-defined time
+    # Schedule delete_pending_orders_at_1am at the specified time
     schedule.every().day.at(delete_orders_time).do(delete_pending_orders_at_1am)
 
 # Function to run get_previous_day_high_low and place trades
