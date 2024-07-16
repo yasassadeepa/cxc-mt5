@@ -40,16 +40,16 @@ def get_user_inputs():
 # Function to get the previous day's high and low prices, considering weekends
 def get_previous_day_high_low(symbol):
     now = datetime.now()
-    end = now.replace(hour=2, minute=30, second=0, microsecond=0)
+    end = now.replace(hour=00, minute=00, second=0, microsecond=0)
     if now < end:
         end -= timedelta(days=1)
     
     # Skip weekends
     while end.weekday() > 4:  # 5: Saturday, 6: Sunday
-        end -= timedelta(days=1)
+        end -= timedelta(days(1))
 
     start = end - timedelta(days=1)
-    start = start.replace(hour=2, minute=30, second=0, microsecond=0)
+    start = start.replace(hour=00, minute=00, second=0, microsecond=0)
     
     # Skip weekends
     while start.weekday() > 4:  # 5: Saturday, 6: Sunday
@@ -71,8 +71,8 @@ def get_previous_day_high_low(symbol):
 # Function to get the previous Asia session's high and low prices (2:30 AM to 10:30 AM)
 def get_previous_asia_session_high_low(symbol):
     today = datetime.now()
-    start = datetime(today.year, today.month, today.day, 2, 30)
-    end = datetime(today.year, today.month, today.day, 10, 30)
+    start = datetime(today.year, today.month, today.day, 0, 00)
+    end = datetime(today.year, today.month, today.day, 8, 00)
     print(f"Fetching data for {symbol} from {start} to {end}")
 
     rates = mt5.copy_rates_range(symbol, mt5.TIMEFRAME_H1, start, end)
@@ -203,6 +203,9 @@ def schedule_tasks():
 
     # Schedule delete_pending_orders_at_1am at the specified time
     schedule.every().day.at(delete_orders_time).do(delete_pending_orders_at_1am)
+
+    # Schedule adjust_sl_tp to run every minute
+    schedule.every().minute.do(adjust_sl_tp)
 
 # Function to run get_previous_day_high_low and place trades
 def run_get_previous_day_high_low():
