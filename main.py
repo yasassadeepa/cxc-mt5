@@ -62,7 +62,7 @@ def get_previous_day_high_low(symbol):
     if rates is not None and len(rates) > 0:
         df = pd.DataFrame(rates)
         df['time'] = pd.to_datetime(df['time'], unit='s')
-        # print(df[['time', 'open', 'high', 'low', 'close', 'tick_volume']])
+        print(df[['time', 'open', 'high', 'low', 'close', 'tick_volume']])
         high = df['high'].max()
         low = df['low'].min()
         return high, low
@@ -82,7 +82,7 @@ def get_previous_asia_session_high_low(symbol):
     if rates is not None and len(rates) > 0:
         df = pd.DataFrame(rates)
         df['time'] = pd.to_datetime(df['time'], unit='s')
-        # print(df[['time', 'open', 'high', 'low', 'close', 'tick_volume']])
+        print(df[['time', 'open', 'high', 'low', 'close', 'tick_volume']])
         high = df['high'].max()
         low = df['low'].min()
         return high, low
@@ -166,6 +166,38 @@ def place_sell_stop(symbol, price, volume):
     result = mt5.order_send(request)
     return result
 
+def place_modified_sl(symbol, ticket, sl):
+    request = {
+        "action": mt5.TRADE_ACTION_SLTP,
+        "symbol": symbol,
+        "position": ticket,
+        "sl": sl,
+        "magic": 234000,
+    }
+    result = mt5.order_send(request)
+    return result
+
+def close_position(symbol, ticket, volume, current_price, order_type):
+    request = {
+        "action": mt5.TRADE_ACTION_DEAL,
+        "symbol": symbol,
+        "position": ticket,
+        "volume": volume,
+        "price": current_price,
+        "type": order_type,
+        "deviation": 10,
+        "magic": 234000,
+        "type_time": mt5.ORDER_TIME_GTC,
+        "type_filling": mt5.ORDER_FILLING_IOC,
+    }
+    print(f"Sending order request: {request}")
+    result = mt5.order_send(request)
+    if result is None:
+        print("Order send failed: result is None")
+    else:
+        print(f"Order send result: {result}")
+    return result
+
 # Function to adjust stop loss and take profit based on the given conditions
 def adjust_sl_tp():
     positions = mt5.positions_get()
@@ -174,21 +206,24 @@ def adjust_sl_tp():
         ticket = pos.ticket
         order_type = pos.type
         open_price = pos.price_open
+        volume = pos.volume
+
         current_price = mt5.symbol_info_tick(symbol).bid if order_type == mt5.ORDER_TYPE_BUY else mt5.symbol_info_tick(symbol).ask
         profit = (current_price - open_price) if order_type == mt5.ORDER_TYPE_BUY else (open_price - current_price)
         profit_pips = profit * 10000  # Convert profit to pips
+        negative_order_type = mt5.ORDER_TYPE_SELL if order_type == mt5.ORDER_TYPE_BUY else mt5.ORDER_TYPE_BUY
 
         if profit_pips >= 60:
-            mt5.order_close(ticket, pos.volume)
+            close_position(symbol, ticket, volume, current_price, negative_order_type)
         elif profit_pips >= 30:
             sl_price = open_price + 0.0029 if order_type == mt5.ORDER_TYPE_BUY else open_price - 0.0029
-            mt5.order_modify(ticket, sl=sl_price)
+            place_modified_sl(symbol, ticket, sl_price)
         elif profit_pips >= 20:
             sl_price = open_price + 0.001 if order_type == mt5.ORDER_TYPE_BUY else open_price - 0.001
-            mt5.order_modify(ticket, sl=sl_price)
+            place_modified_sl(symbol, ticket, sl_price)
         elif profit_pips >= 10:
-            sl_price = open_price + 0.0005 if order_type == mt5.ORDER_TYPE_BUY else open_price - 0.0005
-            mt5.order_modify(ticket, sl=sl_price)
+            sl_price = open_price + 0.00005 if order_type == mt5.ORDER_TYPE_BUY else open_price - 0.00005
+            place_modified_sl(symbol, ticket, sl_price)
 
 # Function to delete pending orders scheduled for 1 AM
 def delete_pending_orders_at_1am():
