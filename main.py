@@ -243,9 +243,6 @@ def schedule_tasks():
     # Schedule delete_pending_orders_at_1am at the specified time
     schedule.every().day.at(delete_orders_time).do(delete_pending_orders_at_1am)
 
-    # Schedule adjust_sl_tp to run every minute
-    schedule.every().minute.do(adjust_sl_tp)
-
 # Function to run get_previous_day_high_low and place trades
 def run_get_previous_day_high_low():
     for pair in currency_pairs:
@@ -294,6 +291,7 @@ schedule_tasks()
 
 # Run the scheduler in a loop
 while True:
+    adjust_sl_tp()
     schedule.run_pending()
     time.sleep(1)
 
