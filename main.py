@@ -40,7 +40,7 @@ def get_user_inputs():
 # Function to get the previous day's high and low prices, considering weekends
 def get_previous_day_high_low(symbol):
     now = datetime.now()
-    end = now.replace(hour=00, minute=00, second=0, microsecond=0)
+    end = now.replace(hour=5, minute=00, second=0, microsecond=0)
     if now < end:
         end -= timedelta(days=1)
     
@@ -49,18 +49,20 @@ def get_previous_day_high_low(symbol):
         end -= timedelta(days(1))
 
     start = end - timedelta(days=1)
-    start = start.replace(hour=00, minute=00, second=0, microsecond=0)
+    start = start.replace(hour=5, minute=00, second=0, microsecond=0)
     
     # Skip weekends
     while start.weekday() > 4:  # 5: Saturday, 6: Sunday
         start -= timedelta(days=1)
 
-    print(f"Fetching data for {symbol} from {start} to {end}")
+    print(f"Fetching data for {symbol}")
 
     rates = mt5.copy_rates_range(symbol, mt5.TIMEFRAME_H1, start, end)
     
     if rates is not None and len(rates) > 0:
         df = pd.DataFrame(rates)
+        df['time'] = pd.to_datetime(df['time'], unit='s')
+        # print(df[['time', 'open', 'high', 'low', 'close', 'tick_volume']])
         high = df['high'].max()
         low = df['low'].min()
         return high, low
@@ -71,14 +73,16 @@ def get_previous_day_high_low(symbol):
 # Function to get the previous Asia session's high and low prices (2:30 AM to 10:30 AM)
 def get_previous_asia_session_high_low(symbol):
     today = datetime.now()
-    start = datetime(today.year, today.month, today.day, 0, 00)
-    end = datetime(today.year, today.month, today.day, 8, 00)
-    print(f"Fetching data for {symbol} from {start} to {end}")
+    start = datetime(today.year, today.month, today.day, 5, 00)
+    end = datetime(today.year, today.month, today.day, 13, 00)
+    print(f"Fetching data for {symbol}")
 
     rates = mt5.copy_rates_range(symbol, mt5.TIMEFRAME_H1, start, end)
-    
+
     if rates is not None and len(rates) > 0:
         df = pd.DataFrame(rates)
+        df['time'] = pd.to_datetime(df['time'], unit='s')
+        # print(df[['time', 'open', 'high', 'low', 'close', 'tick_volume']])
         high = df['high'].max()
         low = df['low'].min()
         return high, low
