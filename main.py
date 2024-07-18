@@ -39,21 +39,25 @@ def get_user_inputs():
 
 # Function to get the previous day's high and low prices, considering weekends
 def get_previous_day_high_low(symbol):
-    now = datetime.now()
-    end = now.replace(hour=5, minute=00, second=0, microsecond=0)
-    if now < end:
-        end -= timedelta(days=1)
+    now = datetime.now() # 03:00
+    end = now.replace(hour=5, minute=00, second=0, microsecond=0) #18 05:00
+    # if now < end:
+    #     end -= timedelta(days=1)
     
     # Skip weekends
-    while end.weekday() > 4:  # 5: Saturday, 6: Sunday
-        end -= timedelta(days(1))
+    if end.weekday() == 5:  # Saturday
+        end -= timedelta(days=1)
+    elif end.weekday() == 6:  # Sunday
+        end -= timedelta(days=2)
 
-    start = end - timedelta(days=1)
+    start = end - timedelta(days=1) # 17 05:00
     start = start.replace(hour=5, minute=00, second=0, microsecond=0)
     
     # Skip weekends
-    while start.weekday() > 4:  # 5: Saturday, 6: Sunday
-        start -= timedelta(days=1)
+    if end.weekday() == 5:  # Saturday
+        end -= timedelta(days=1)
+    elif end.weekday() == 6:  # Sunday
+        end -= timedelta(days=2)
 
     print(f"Fetching data for {symbol}")
 
