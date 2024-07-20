@@ -106,7 +106,7 @@ def place_buy_limit(symbol, price, volume):
         "tp": price + 0.006,  # Initial Take profit 60 pips above the buy limit price
         "deviation": 10,
         "magic": 234000,
-        "comment": "Python script buy limit",
+        "comment": "CXC Buy Limit",
         "type_time": mt5.ORDER_TIME_GTC,
         "type_filling": mt5.ORDER_FILLING_RETURN,
     }
@@ -125,7 +125,7 @@ def place_sell_limit(symbol, price, volume):
         "tp": price - 0.006,  # Initial Take profit 60 pips below the sell limit price
         "deviation": 10,
         "magic": 234000,
-        "comment": "Python script sell limit",
+        "comment": "CXC Sell Limit",
         "type_time": mt5.ORDER_TIME_GTC,
         "type_filling": mt5.ORDER_FILLING_RETURN,
     }
@@ -144,7 +144,7 @@ def place_buy_stop(symbol, price, volume):
         "tp": price + 0.006,  # Initial Take profit 60 pips above the buy stop price
         "deviation": 10,
         "magic": 234000,
-        "comment": "Python script buy stop",
+        "comment": "CXC Buy Stop",
         "type_time": mt5.ORDER_TIME_GTC,
         "type_filling": mt5.ORDER_FILLING_RETURN,
     }
@@ -163,7 +163,7 @@ def place_sell_stop(symbol, price, volume):
         "tp": price - 0.006,  # Initial Take profit 60 pips below the sell stop price
         "deviation": 10,
         "magic": 234000,
-        "comment": "Python script sell stop",
+        "comment": "CXC Sell Stop",
         "type_time": mt5.ORDER_TIME_GTC,
         "type_filling": mt5.ORDER_FILLING_RETURN,
     }
