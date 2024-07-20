@@ -170,12 +170,13 @@ def place_sell_stop(symbol, price, volume):
     result = mt5.order_send(request)
     return result
 
-def place_modified_sl(symbol, ticket, sl):
+def place_modified_sl(symbol, ticket, sl, tp):
     request = {
         "action": mt5.TRADE_ACTION_SLTP,
         "symbol": symbol,
         "position": ticket,
         "sl": sl,
+        "tp": tp,
         "magic": 234000,
     }
     result = mt5.order_send(request)
@@ -218,24 +219,27 @@ def adjust_sl_tp():
         negative_order_type = mt5.ORDER_TYPE_SELL if order_type == mt5.ORDER_TYPE_BUY else mt5.ORDER_TYPE_BUY
 
         current_sl = pos.sl
+        current_tp = pos.tp
 
         if profit_pips >= 60:
             close_position(symbol, ticket, volume, current_price, negative_order_type)
         elif profit_pips >= 30:
             sl_price = open_price + 0.0029 if order_type == mt5.ORDER_TYPE_BUY else open_price - 0.0029
             if (order_type == mt5.ORDER_TYPE_BUY and sl_price > current_sl) or (order_type == mt5.ORDER_TYPE_SELL and sl_price < current_sl):
-                place_modified_sl(symbol, ticket, sl_price)
+                place_modified_sl(symbol, ticket, sl_price, current_tp)
         elif profit_pips >= 20:
             sl_price = open_price + 0.001 if order_type == mt5.ORDER_TYPE_BUY else open_price - 0.001
             if (order_type == mt5.ORDER_TYPE_BUY and sl_price > current_sl) or (order_type == mt5.ORDER_TYPE_SELL and sl_price < current_sl):
-                place_modified_sl(symbol, ticket, sl_price)
+                place_modified_sl(symbol, ticket, sl_price, current_tp)
         elif profit_pips >= 10:
             sl_price = open_price + 0.00005 if order_type == mt5.ORDER_TYPE_BUY else open_price - 0.00005
             if (order_type == mt5.ORDER_TYPE_BUY and sl_price > current_sl) or (order_type == mt5.ORDER_TYPE_SELL and sl_price < current_sl):
-                place_modified_sl(symbol, ticket, sl_price)
+                place_modified_sl(symbol, ticket, sl_price, current_tp)
 
 # Function to delete pending orders scheduled for 1 AM
 def delete_pending_orders_at_1am():
+    positions = mt5.positions_get()
+    print(positions)
     orders = mt5.orders_get()
     for order in orders:
         close_request = {
