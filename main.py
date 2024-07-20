@@ -238,8 +238,13 @@ def adjust_sl_tp():
 def delete_pending_orders_at_1am():
     orders = mt5.orders_get()
     for order in orders:
-        if order.type_time == mt5.ORDER_TIME_SPECIFIED and order.time_setup.hour == 1:
-            mt5.order_delete(order.ticket)
+        close_request = {
+            "action": mt5.TRADE_ACTION_REMOVE,
+            "order": order.ticket,
+            "type_time": mt5.ORDER_TIME_GTC,
+            "type_filling": mt5.ORDER_FILLING_IOC,
+        }
+        result = mt5.order_send(close_request)
 
 # Function to schedule tasks
 def schedule_tasks():
