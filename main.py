@@ -54,10 +54,10 @@ def get_previous_day_high_low(symbol):
     start = start.replace(hour=5, minute=00, second=0, microsecond=0)
     
     # Skip weekends
-    if end.weekday() == 5:  # Saturday
-        end -= timedelta(days=1)
-    elif end.weekday() == 6:  # Sunday
-        end -= timedelta(days=2)
+    if start.weekday() == 5:  # Saturday
+        start -= timedelta(days=1)
+    elif start.weekday() == 6:  # Sunday
+        start -= timedelta(days=2)
 
     print(f"Fetching data for {symbol}")
 
