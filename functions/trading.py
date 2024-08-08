@@ -1,10 +1,11 @@
 import MetaTrader5 as mt5
+from typing import Tuple, Optional
 from datetime import datetime, timedelta
 import pandas as pd
 from functions.orders import place_buy_limit, place_sell_limit, place_buy_stop, place_sell_stop
 
 # Function to get the previous day's high and low prices, considering weekends
-def get_previous_day_high_low(symbol):
+def get_previous_day_high_low(symbol: str) -> Tuple[Optional[float], Optional[float]]:
     now = datetime.now() # 03:00
     end = now.replace(hour=5, minute=00, second=0, microsecond=0) #18 05:00
     # if now < end:
