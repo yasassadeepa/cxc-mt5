@@ -1,5 +1,8 @@
 import MetaTrader5 as mt5
 from functions.orders import place_modified_sl
+from functions.logger import get_logger
+
+logger = get_logger()
 
 # Function to adjust stop loss and take profit based on the given conditions
 def adjust_sl_tp():
@@ -35,7 +38,7 @@ def adjust_sl_tp():
                 if (order_type == mt5.ORDER_TYPE_BUY and sl_price > current_sl) or (order_type == mt5.ORDER_TYPE_SELL and sl_price < current_sl):
                     place_modified_sl(symbol, ticket, sl_price, current_tp)
         except Exception as e:
-            print(f"Error adjusting SL/TP for {symbol} (ticket: {ticket}): {e}")
+            logger.error(f"Error adjusting SL/TP for {symbol} (ticket: {ticket}): {e}")
 
 # Function to delete pending orders scheduled for 1 AM
 def delete_pending_orders_at_1am():
