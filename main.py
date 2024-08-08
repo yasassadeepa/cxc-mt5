@@ -3,49 +3,30 @@ from datetime import datetime, timedelta
 import pandas as pd
 import time
 import schedule
-from typing import Dict, Any, Optional
-import json
-import logging
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+# Initialize the MetaTrader5 package
+if not mt5.initialize():
+    print("initialize() failed")
+    mt5.shutdown()
 
 # Function to read configuration from a text file
-def read_config_file(filename: str) -> Dict[str, str]:
-    """
-    Reads configuration settings from a JSON file.
-    
-    Args:
-        filename (str): Path to the configuration file.
-    
-    Returns:
-        Dict[str, str]: Configuration settings.
-    """
-    try:
-        with open(filename, 'r') as file:
-            config = json.load(file)
-        return config
-    except FileNotFoundError:
-        logger.error(f"Configuration file {filename} not found.")
-    except json.JSONDecodeError as e:
-        logger.error(f"Error reading configuration file: {e}")
-    return {}
+def read_config_file(filename):
+    config = {}
+    with open(filename, 'r') as file:
+        lines = file.readlines()
+        for line in lines:
+            key, value = line.strip().split('=')
+            config[key] = value
+    return config
 
 # Function to get user inputs with defaults from config file
-def get_user_inputs() -> Dict[str, str]:
-    """
-    Retrieves user inputs, falling back to defaults from the configuration file if not provided.
-    
-    Returns:
-        Dict[str, str]: User inputs and configuration settings.
-    """
-    config = read_config_file('config.json')
+def get_user_inputs():
+    global currency_pairs, day_high_low_time, asia_high_low_time, delete_orders_time, lot_size
 
-    currency_pairs = input(f"Enter the currency pairs (default: {config['currency_pairs']}): ")
-    if currency_pairs.strip():  # Check if input is not empty
-        currency_pairs = currency_pairs.split(',')
-    else:
-        currency_pairs = config['currency_pairs']
+    config = read_config_file('config.txt')
+
+    currency_pairs = input(f"Enter the currency pairs (default: {config['currency_pairs']}): ") or config['currency_pairs']
+    currency_pairs = currency_pairs.split(',')
     
     day_high_low_time = input(f"Enter the time to get previous day high/low (default: {config['day_high_low_time']}): ") or config['day_high_low_time']
     
@@ -55,14 +36,6 @@ def get_user_inputs() -> Dict[str, str]:
     
     lot_size = input(f"Enter the lot size for orders (default: {config['lot_size']}): ") or config['lot_size']
     lot_size = float(lot_size)
-
-    return {
-        "currency_pairs": currency_pairs,
-        "day_high_low_time": day_high_low_time,
-        "asia_high_low_time": asia_high_low_time,
-        "delete_orders_time": delete_orders_time,
-        "lot_size": lot_size
-    }
 
 # Function to get the previous day's high and low prices, considering weekends
 def get_previous_day_high_low(symbol):
@@ -334,14 +307,8 @@ def run_get_previous_asia_session_high_low():
         else:
             print(f"Failed to retrieve symbol info for {pair}")
 
-# Initialize the MetaTrader5 package
-if not mt5.initialize():
-    print("initialize() failed")
-    mt5.shutdown()
-
 # Get user inputs
-config = get_user_inputs()
-print(config)
+get_user_inputs()
 
 # Initial schedule tasks
 schedule_tasks()
