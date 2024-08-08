@@ -1,4 +1,3 @@
-# utils.py
 from configs import read_config_file
 
 def get_user_inputs():
