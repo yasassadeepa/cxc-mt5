@@ -43,7 +43,7 @@ def adjust_sl_tp():
 # Function to delete pending orders scheduled for 1 AM
 def delete_pending_orders_at_1am():
     positions = mt5.positions_get()
-    print(positions)
+    # print(positions)
     orders = mt5.orders_get()
     for order in orders:
         close_request = {
