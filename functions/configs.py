@@ -1,4 +1,4 @@
-from typing import Tuple, Optional, Dict
+from typing import Dict
 
 # Function to read configuration from a text file
 def read_config_file(filename: str) -> Dict[str, str]:
