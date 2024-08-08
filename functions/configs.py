@@ -1,5 +1,7 @@
+from typing import Tuple, Optional, Dict
+
 # Function to read configuration from a text file
-def read_config_file(filename):
+def read_config_file(filename: str) -> Dict[str, str]:
     config = {}
     try:
         with open(filename, 'r') as file:
