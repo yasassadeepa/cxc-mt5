@@ -2,6 +2,9 @@ import schedule
 import time
 from functions.trading import run_get_previous_day_high_low, run_get_previous_asia_session_high_low
 from functions.session import delete_pending_orders_at_1am, adjust_sl_tp
+from functions.logger import get_logger
+
+logger = get_logger()
 
 # Function to schedule tasks
 def schedule_tasks(currency_pairs:list, day_high_low_time:str, asia_high_low_time:str, delete_orders_time:str, lot_size:float):
@@ -21,7 +24,7 @@ def run_scheduler():
             schedule.run_pending()
             time.sleep(1)
     except KeyboardInterrupt:
-        print("Execution interrupted by user.")
+        logger.info("Execution interrupted by user.")
     finally:
         # Shutdown MetaTrader5 connection
         mt5.shutdown()
