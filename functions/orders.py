@@ -102,10 +102,5 @@ def close_position(symbol:str, ticket:str, volume:float, current_price:float, or
         "type_time": mt5.ORDER_TIME_GTC,
         "type_filling": mt5.ORDER_FILLING_IOC,
     }
-    print(f"Sending order request: {request}")
     result = mt5.order_send(request)
-    if result is None:
-        print("Order send failed: result is None")
-    else:
-        print(f"Order send result: {result}")
     return result
