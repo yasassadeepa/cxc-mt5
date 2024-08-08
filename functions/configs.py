@@ -1,4 +1,7 @@
 from typing import Dict
+from functions.logger import get_logger
+
+logger = get_logger()
 
 # Function to read configuration from a text file
 def read_config_file(filename: str) -> Dict[str, str]:
@@ -10,7 +13,7 @@ def read_config_file(filename: str) -> Dict[str, str]:
                 key, value = line.strip().split('=')
                 config[key] = value
     except FileNotFoundError:
-        print(f"Configuration file {filename} not found.")
+        logger.error(f"Configuration file {filename} not found.")
     except Exception as e:
-        print(f"Error reading configuration file: {e}")
+        logger.error(f"Error reading configuration file: {e}")
     return config
