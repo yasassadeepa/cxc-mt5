@@ -1,11 +1,14 @@
 import MetaTrader5 as mt5
 from functions.scheduler import schedule_tasks, run_scheduler
 from functions.utils import get_user_inputs
+from functions.logger import get_logger
+
+logger = get_logger()
 
 def main():
     # Initialize the MetaTrader5 package
     if not mt5.initialize():
-        print("initialize() failed")
+        logger.error("Initialize() failed")
         mt5.shutdown()
         return  # Exit the function if initialization fails
 
