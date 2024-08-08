@@ -1,7 +1,8 @@
 import MetaTrader5 as mt5
+from typing import Optional
 
 # Function to place a buy limit order
-def place_buy_limit(symbol, price, volume):
+def place_buy_limit(symbol:str, price:float, volume:float) -> Optional[mt5.OrderSendResult]:
     request = {
         "action": mt5.TRADE_ACTION_PENDING,
         "symbol": symbol,
@@ -20,7 +21,7 @@ def place_buy_limit(symbol, price, volume):
     return result
 
 # Function to place a sell limit order
-def place_sell_limit(symbol, price, volume):
+def place_sell_limit(symbol:str, price:float, volume:float) -> Optional[mt5.OrderSendResult]:
     request = {
         "action": mt5.TRADE_ACTION_PENDING,
         "symbol": symbol,
@@ -39,7 +40,7 @@ def place_sell_limit(symbol, price, volume):
     return result
 
 # Function to place a buy stop order
-def place_buy_stop(symbol, price, volume):
+def place_buy_stop(symbol:str, price:float, volume:float) -> Optional[mt5.OrderSendResult]:
     request = {
         "action": mt5.TRADE_ACTION_PENDING,
         "symbol": symbol,
@@ -58,7 +59,7 @@ def place_buy_stop(symbol, price, volume):
     return result
 
 # Function to place a sell stop order
-def place_sell_stop(symbol, price, volume):
+def place_sell_stop(symbol:str, price:float, volume:float) -> Optional[mt5.OrderSendResult]:
     request = {
         "action": mt5.TRADE_ACTION_PENDING,
         "symbol": symbol,
@@ -76,7 +77,7 @@ def place_sell_stop(symbol, price, volume):
     result = mt5.order_send(request)
     return result
 
-def place_modified_sl(symbol, ticket, sl, tp):
+def place_modified_sl(symbol:str, price:float, volume:float) -> Optional[mt5.OrderSendResult]:
     request = {
         "action": mt5.TRADE_ACTION_SLTP,
         "symbol": symbol,
@@ -88,7 +89,7 @@ def place_modified_sl(symbol, ticket, sl, tp):
     result = mt5.order_send(request)
     return result
 
-def close_position(symbol, ticket, volume, current_price, order_type):
+def close_position(symbol:str, ticket:str, volume:float, current_price:float, order_type:int)  -> Optional[mt5.OrderSendResult]:
     request = {
         "action": mt5.TRADE_ACTION_DEAL,
         "symbol": symbol,
