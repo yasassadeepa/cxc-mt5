@@ -3,21 +3,14 @@ from datetime import datetime, timedelta
 import pandas as pd
 import time
 import schedule
+from config import read_config_file
 
 # Initialize the MetaTrader5 package
 if not mt5.initialize():
     print("initialize() failed")
     mt5.shutdown()
 
-# Function to read configuration from a text file
-def read_config_file(filename):
-    config = {}
-    with open(filename, 'r') as file:
-        lines = file.readlines()
-        for line in lines:
-            key, value = line.strip().split('=')
-            config[key] = value
-    return config
+config = read_config_file('config.txt')
 
 # Function to get user inputs with defaults from config file
 def get_user_inputs():
