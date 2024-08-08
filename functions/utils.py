@@ -1,7 +1,7 @@
-from configs import read_config_file
+from functions.configs import read_config_file
 
 def get_user_inputs():
-    config = read_config_file('config.txt')
+    config = read_config_file('config/config.txt')
 
     currency_pairs = input(f"Enter the currency pairs (default: {config['currency_pairs']}): ") or config['currency_pairs']
     currency_pairs = currency_pairs.split(',')

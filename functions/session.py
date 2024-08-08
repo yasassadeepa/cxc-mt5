@@ -1,5 +1,5 @@
 import MetaTrader5 as mt5
-from orders import place_modified_sl
+from functions.orders import place_modified_sl
 
 # Function to adjust stop loss and take profit based on the given conditions
 def adjust_sl_tp():

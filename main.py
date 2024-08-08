@@ -1,6 +1,6 @@
 import MetaTrader5 as mt5
-from scheduler import schedule_tasks, run_scheduler
-from utils import get_user_inputs
+from functions.scheduler import schedule_tasks, run_scheduler
+from functions.utils import get_user_inputs
 
 def main():
     # Initialize the MetaTrader5 package

@@ -1,7 +1,7 @@
 import schedule
 import time
-from trading import run_get_previous_day_high_low, run_get_previous_asia_session_high_low
-from session import delete_pending_orders_at_1am, adjust_sl_tp
+from functions.trading import run_get_previous_day_high_low, run_get_previous_asia_session_high_low
+from functions.session import delete_pending_orders_at_1am, adjust_sl_tp
 
 # Function to schedule tasks
 def schedule_tasks(currency_pairs, day_high_low_time, asia_high_low_time, delete_orders_time, lot_size):
