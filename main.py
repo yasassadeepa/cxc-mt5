@@ -17,9 +17,6 @@ def main():
     
     # Run the scheduler
     run_scheduler()
-    
-    # Shutdown MetaTrader5 connection (Note: This part won't be reached in the loop above)
-    mt5.shutdown()
 
 if __name__ == "__main__":
     main()

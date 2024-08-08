@@ -15,7 +15,13 @@ def schedule_tasks(currency_pairs, day_high_low_time, asia_high_low_time, delete
     schedule.every().day.at(delete_orders_time).do(delete_pending_orders_at_1am)
 
 def run_scheduler():
-    while True:
-        adjust_sl_tp()
-        schedule.run_pending()
-        time.sleep(1)
+    try:
+        while True:
+            adjust_sl_tp()
+            schedule.run_pending()
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("Execution interrupted by user.")
+    finally:
+        # Shutdown MetaTrader5 connection
+        mt5.shutdown()
