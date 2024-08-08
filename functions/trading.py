@@ -42,7 +42,7 @@ def get_previous_day_high_low(symbol: str) -> Tuple[Optional[float], Optional[fl
         return None, None
 
 # Function to get the previous Asia session's high and low prices (2:30 AM to 10:30 AM)
-def get_previous_asia_session_high_low(symbol):
+def get_previous_asia_session_high_low(symbol: str) -> Tuple[Optional[float], Optional[float]]:
     today = datetime.now()
     start = datetime(today.year, today.month, today.day, 5, 00)
     end = datetime(today.year, today.month, today.day, 13, 00)
@@ -62,7 +62,7 @@ def get_previous_asia_session_high_low(symbol):
         return None, None
 
 # Function to run get_previous_day_high_low and place trades
-def run_get_previous_day_high_low(currency_pairs, lot_size):
+def run_get_previous_day_high_low(currency_pairs: list, lot_size: float):
     for pair in currency_pairs:
         symbol_info = mt5.symbol_info_tick(pair)
         if symbol_info is not None:
@@ -85,7 +85,7 @@ def run_get_previous_day_high_low(currency_pairs, lot_size):
             print(f"Failed to retrieve symbol info for {pair}")
 
 # Function to run get_previous_asia_session_high_low and place trades
-def run_get_previous_asia_session_high_low(currency_pairs, lot_size):
+def run_get_previous_asia_session_high_low(currency_pairs: list, lot_size: float):
     for pair in currency_pairs:
         symbol_info = mt5.symbol_info_tick(pair)
         if symbol_info is not None:
