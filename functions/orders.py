@@ -77,7 +77,7 @@ def place_sell_stop(symbol:str, price:float, volume:float) -> Optional[mt5.Order
     result = mt5.order_send(request)
     return result
 
-def place_modified_sl(symbol:str, price:float, volume:float) -> Optional[mt5.OrderSendResult]:
+def place_modified_sl(symbol:str, ticket:str, sl:float, tp:float) -> Optional[mt5.OrderSendResult]:
     request = {
         "action": mt5.TRADE_ACTION_SLTP,
         "symbol": symbol,
