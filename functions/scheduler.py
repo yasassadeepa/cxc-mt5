@@ -17,9 +17,14 @@ def schedule_tasks(currency_pairs:list, day_high_low_time:str, asia_high_low_tim
     # Schedule delete_pending_orders_at_1am at the specified time
     schedule.every().day.at(delete_orders_time).do(delete_pending_orders_at_1am)
 
-def run_scheduler():
+def run_scheduler(currency_pairs:list,lot_size:float):
+    global previouse_day_missing_symbols, asia_session_missing_symbols
     try:
         while True:
+            if previouse_day_missing_symbols:
+                run_get_previous_day_high_low(currency_pairs, lot_size)
+            if asia_session_missing_symbols:
+                run_get_previous_asia_session_high_low(currency_pairs, lot_size)
             adjust_sl_tp()
             schedule.run_pending()
             time.sleep(1)
