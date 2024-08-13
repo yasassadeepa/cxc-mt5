@@ -12,6 +12,9 @@ def main():
         mt5.shutdown()
         return  # Exit the function if initialization fails
 
+    previouse_day_missing_symbols = []
+    asia_session_missing_symbols = []
+
     # Get user inputs
     currency_pairs, day_high_low_time, asia_high_low_time, delete_orders_time, lot_size = get_user_inputs()
 
@@ -19,7 +22,7 @@ def main():
     schedule_tasks(currency_pairs, day_high_low_time, asia_high_low_time, delete_orders_time, lot_size)
     
     # Run the scheduler
-    run_scheduler()
+    run_scheduler(currency_pairs, lot_size)
 
 if __name__ == "__main__":
     main()
