@@ -12,7 +12,7 @@ latest_candles_dict = {}
 
 symbols = ["EURUSD", "AUDUSD", "GBPUSD"]
 volume = 10.0
-timeframe = mt5.TIMEFRAME_H4
+timeframe = mt5.TIMEFRAME_M15
 
 def get_previous_candle(symbol, timeframe):
     rates = mt5.copy_rates_from_pos(symbol, timeframe, 0, 2)
@@ -23,9 +23,9 @@ def get_previous_candle(symbol, timeframe):
     previous_candle = rates[-2]
 
     candle_time = datetime.fromtimestamp(previous_candle['time'])
-    candle_hour = candle_time.hour
+    candle_minutes = candle_time.hour * 60 + candle_time.minute
 
-    if candle_hour == 1:
+    if not ((13 * 60 + 45 <= candle_minutes <= 15 * 60 + 45) or (19 * 60 + 45 <= candle_minutes <= 21 * 60 + 45)):
         return None, None, None
 
     return previous_candle['high'], previous_candle['low'], previous_candle['time']
@@ -117,8 +117,8 @@ def place_pending_order(symbol, price, volume, order_type):
         "volume": volume,
         "type": order_type,
         "price": price,
-        "sl": price - 0.0005 if order_type in [mt5.ORDER_TYPE_BUY_STOP, mt5.ORDER_TYPE_BUY_LIMIT] else price + 0.0005,
-        "tp": price + 0.005 if order_type in [mt5.ORDER_TYPE_BUY_STOP, mt5.ORDER_TYPE_BUY_LIMIT] else price - 0.005,
+        "sl": price - 0.0003 if order_type in [mt5.ORDER_TYPE_BUY_STOP, mt5.ORDER_TYPE_BUY_LIMIT] else price + 0.0003,
+        "tp": price + 0.003 if order_type in [mt5.ORDER_TYPE_BUY_STOP, mt5.ORDER_TYPE_BUY_LIMIT] else price - 0.003,
         "deviation": 10,
         "magic": 234000,
         "comment": comment,
@@ -201,17 +201,17 @@ def manage_trailing_stop(position):
 
     negative_order_type = mt5.ORDER_TYPE_SELL if order_type == mt5.ORDER_TYPE_BUY else mt5.ORDER_TYPE_BUY
 
-    if profit_pips >= 25:
-        new_sl = open_price + 0.0024 if order_type == mt5.ORDER_TYPE_BUY else open_price - 0.0024
+    if profit_pips >= 20:
+        new_sl = open_price + 0.0015 if order_type == mt5.ORDER_TYPE_BUY else open_price - 0.0015
         if (order_type == mt5.ORDER_TYPE_BUY and new_sl > sl) or (order_type == mt5.ORDER_TYPE_SELL and new_sl < sl):
             update_sl(position, new_sl)
     
-    elif profit_pips >= 20:
-        new_sl = open_price + 0.0005 if order_type == mt5.ORDER_TYPE_BUY else open_price - 0.0005
+    elif profit_pips >= 15:
+        new_sl = open_price + 0.0003 if order_type == mt5.ORDER_TYPE_BUY else open_price - 0.0003
         if (order_type == mt5.ORDER_TYPE_BUY and new_sl > sl) or (order_type == mt5.ORDER_TYPE_SELL and new_sl < sl):
             update_sl(position, new_sl)
     
-    elif profit_pips >= 5:
+    elif profit_pips >= 10:
         new_sl = open_price + 0.00005 if order_type == mt5.ORDER_TYPE_BUY else open_price - 0.00005
         if (order_type == mt5.ORDER_TYPE_BUY and new_sl > sl) or (order_type == mt5.ORDER_TYPE_SELL and new_sl < sl):
             update_sl(position, new_sl)
