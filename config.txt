@@ -1,0 +1,5 @@
+currency_pairs=EURUSD,GBPUSD,AUDUSD
+day_high_low_time=03:00
+asia_high_low_time=10:30
+delete_orders_time=02:00
+lot_size=10.00
