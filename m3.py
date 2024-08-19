@@ -103,13 +103,13 @@ def run_delete_order(ticket, symbol):
 
 def place_pending_order(symbol, price, volume, order_type):
     if order_type == mt5.ORDER_TYPE_BUY_STOP:
-        comment = "M2 Buy Stop"
+        comment = "M3 Buy Stop"
     elif order_type == mt5.ORDER_TYPE_BUY_LIMIT:
-        comment = "M2 Buy Limit"
+        comment = "M3 Buy Limit"
     elif order_type == mt5.ORDER_TYPE_SELL_LIMIT:
-        comment = "M2 Sell Limit"
+        comment = "M3 Sell Limit"
     else:
-        comment = "M2 Sell Stop"
+        comment = "M3 Sell Stop"
 
     request = {
         "action": mt5.TRADE_ACTION_PENDING,
@@ -166,10 +166,10 @@ def remove_orders_for_positions(symbol):
     if positions:
         active_trades = {pos.ticket: pos.comment for pos in positions}
         for ticket, trade_type in active_trades.items():
-            if trade_type in ["M2 Sell Limit", "M2 Buy Stop"]:
-                remove_opposite_trades(symbol, ticket, "M2 Buy Limit", "M2 Sell Stop")
-            elif trade_type in ["M2 Buy Limit", "M2 Sell Stop"]:
-                remove_opposite_trades(symbol, ticket, "M2 Sell Limit", "M2 Buy Stop")
+            if trade_type in ["M3 Sell Limit", "M3 Buy Stop"]:
+                remove_opposite_trades(symbol, ticket, "M3 Buy Limit", "M3 Sell Stop")
+            elif trade_type in ["M3 Buy Limit", "M3 Sell Stop"]:
+                remove_opposite_trades(symbol, ticket, "M3 Sell Limit", "M3 Buy Stop")
 
 def update_sl(position, new_sl):
     request = {
