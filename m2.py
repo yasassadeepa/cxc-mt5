@@ -9,6 +9,7 @@ if not mt5.initialize():
 
 pending_orders_dict = {}
 latest_candles_dict = {}
+pending_orders_list = []
 
 symbols = ["EURUSD", "AUDUSD", "GBPUSD"]
 volume = 10.0
@@ -131,6 +132,7 @@ def place_pending_order(symbol, price, volume, order_type):
         print(f"Failed to place {order_type} order at {price} for {symbol}: {result.retcode}")
         return None
     else:
+        pending_orders_list.append(result.order)
         print(f"Placed {order_type} order at {price} for {symbol}")
         return result.order
 
@@ -234,7 +236,7 @@ while True:
 
         new_candle = check_is_new_candle(symbol, pre_time)
         if new_candle:
-            delete_pending_orders(symbol)
+            delete_pending_orders(symbol, pending_orders_list)
 
             high_trades = []
             low_trades = []
@@ -257,3 +259,5 @@ while True:
 
         remove_orders_for_positions(symbol)
         monitor_triggered_orders(symbol)
+    
+    pending_orders_list.clear()
