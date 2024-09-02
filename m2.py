@@ -13,7 +13,7 @@ pending_orders_list = []
 first_cond = False
 
 symbols = ["EURUSD", "AUDUSD", "GBPUSD"]
-volume = 5.0
+volume = 20.0
 timeframe = mt5.TIMEFRAME_H4
 
 def get_previous_candle(symbol, timeframe):
