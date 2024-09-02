@@ -10,9 +10,10 @@ if not mt5.initialize():
 pending_orders_dict = {}
 latest_candles_dict = {}
 pending_orders_list = []
+first_cond = False
 
 symbols = ["EURUSD", "AUDUSD", "GBPUSD"]
-volume = 10.0
+volume = 5.0
 timeframe = mt5.TIMEFRAME_H4
 
 def get_previous_candle(symbol, timeframe):
@@ -103,6 +104,8 @@ def run_delete_order(ticket, symbol):
     return
 
 def place_pending_order(symbol, price, volume, order_type):
+    global first_cond
+    
     if order_type == mt5.ORDER_TYPE_BUY_STOP:
         comment = "M2 Buy Stop"
     elif order_type == mt5.ORDER_TYPE_BUY_LIMIT:
@@ -131,6 +134,7 @@ def place_pending_order(symbol, price, volume, order_type):
         print(f"Failed to place {order_type} order at {price} for {symbol}: {result.retcode}")
         return None
     else:
+        first_cond = True
         pending_orders_list.append(result.order)
         print(f"Placed {order_type} order at {price} for {symbol}")
         return result.order
@@ -235,7 +239,8 @@ while True:
 
         new_candle = check_is_new_candle(symbol, pre_time)
         if new_candle:
-            delete_pending_orders(symbol, pending_orders_list)
+            if first_cond:
+                delete_pending_orders(symbol, pending_orders_list)
 
             high_trades = []
             low_trades = []
