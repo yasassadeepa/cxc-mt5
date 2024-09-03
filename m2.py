@@ -265,3 +265,4 @@ while True:
         monitor_triggered_orders(symbol)
     
     pending_orders_list.clear()
+    first_cond = False
