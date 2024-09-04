@@ -263,6 +263,7 @@ while True:
 
         remove_orders_for_positions(symbol)
         monitor_triggered_orders(symbol)
+        time.sleep(1)
     
     pending_orders_list.clear()
     first_cond = False
