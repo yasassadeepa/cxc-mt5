@@ -10,6 +10,7 @@ if not mt5.initialize():
 pending_orders_dict = {}
 latest_candles_dict = {}
 pending_orders_list = []
+active_positions = []
 first_cond = False
 
 symbols = ["EURUSD", "AUDUSD", "GBPUSD"]
@@ -168,13 +169,16 @@ def remove_opposite_trades(symbol, ticket, order_type1, order_type2):
         return
 
 def remove_orders_for_positions(symbol):
+    global active_positions
     positions = mt5.positions_get(symbol=symbol)
     if positions:
         active_trades = {pos.ticket: pos.comment for pos in positions}
         for ticket, trade_type in active_trades.items():
             if trade_type in ["M2 Sell Limit", "M2 Buy Stop"]:
+                active_positions.append(ticket)
                 remove_opposite_trades(symbol, ticket, "M2 Buy Limit", "M2 Sell Stop")
             elif trade_type in ["M2 Buy Limit", "M2 Sell Stop"]:
+                active_positions.append(ticket)
                 remove_opposite_trades(symbol, ticket, "M2 Sell Limit", "M2 Buy Stop")
 
 def update_sl(position, new_sl):
@@ -226,7 +230,10 @@ def monitor_triggered_orders(symbol):
     positions = mt5.positions_get(symbol=symbol)
     if positions:
         for pos in positions:
-            manage_trailing_stop(pos)
+            if pos.ticket in active_positions:
+                manage_trailing_stop(pos)
+    else:
+        active_positions.clear()
     
     return
 

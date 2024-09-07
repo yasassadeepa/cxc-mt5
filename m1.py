@@ -11,6 +11,7 @@ if not mt5.initialize():
 
 missing_symbols_pdhl = []
 missing_symbols_ashl = []
+active_positions = []
 
 # Function to read configuration from a text file
 def read_config_file(filename):
@@ -127,6 +128,7 @@ def place_buy_limit(symbol, price, volume):
     if result is None:
         print("Order send failed: result is None")
     else:
+        active_positions.append(result.order)
         print(f"Order send result: {result}")
     return result
 
@@ -151,6 +153,7 @@ def place_sell_limit(symbol, price, volume):
     if result is None:
         print("Order send failed: result is None")
     else:
+        active_positions.append(result.order)
         print(f"Order send result: {result}")
     return result
 
@@ -175,6 +178,7 @@ def place_buy_stop(symbol, price, volume):
     if result is None:
         print("Order send failed: result is None")
     else:
+        active_positions.append(result.order)
         print(f"Order send result: {result}")
     return result
 
@@ -199,6 +203,7 @@ def place_sell_stop(symbol, price, volume):
     if result is None:
         print("Order send failed: result is None")
     else:
+        active_positions.append(result.order)
         print(f"Order send result: {result}")
     return result
 
@@ -244,6 +249,9 @@ def close_position(symbol, ticket, volume, current_price, order_type):
 def adjust_sl_tp():
     positions = mt5.positions_get()
     for pos in positions:
+        if pos not in active_positions:
+            continue
+
         symbol = pos.symbol
         ticket = pos.ticket
         order_type = pos.type
@@ -276,7 +284,10 @@ def adjust_sl_tp():
 # Function to delete pending orders scheduled for 1 AM
 def delete_pending_orders_at_1am():
     positions = mt5.positions_get()
-    print(positions)
+
+    if not positions:
+        active_positions.clear()
+
     orders = mt5.orders_get()
     for order in orders:
         close_request = {
@@ -288,6 +299,7 @@ def delete_pending_orders_at_1am():
         result = mt5.order_send(close_request)
     missing_symbols_pdhl.clear()
     missing_symbols_ashl.clear()
+    active_positions.clear()
     
 # Function to schedule tasks
 def schedule_tasks():
