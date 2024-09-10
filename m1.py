@@ -109,6 +109,7 @@ def get_previous_asia_session_high_low(symbol):
 
 # Function to place a buy limit order
 def place_buy_limit(symbol, price, volume):
+    global active_positions
     request = {
         "action": mt5.TRADE_ACTION_PENDING,
         "symbol": symbol,
@@ -134,6 +135,7 @@ def place_buy_limit(symbol, price, volume):
 
 # Function to place a sell limit order
 def place_sell_limit(symbol, price, volume):
+    global active_positions
     request = {
         "action": mt5.TRADE_ACTION_PENDING,
         "symbol": symbol,
@@ -159,6 +161,7 @@ def place_sell_limit(symbol, price, volume):
 
 # Function to place a buy stop order
 def place_buy_stop(symbol, price, volume):
+    global active_positions
     request = {
         "action": mt5.TRADE_ACTION_PENDING,
         "symbol": symbol,
@@ -184,6 +187,7 @@ def place_buy_stop(symbol, price, volume):
 
 # Function to place a sell stop order
 def place_sell_stop(symbol, price, volume):
+    global active_positions
     request = {
         "action": mt5.TRADE_ACTION_PENDING,
         "symbol": symbol,
@@ -247,9 +251,10 @@ def close_position(symbol, ticket, volume, current_price, order_type):
 
 # Function to adjust stop loss and take profit based on the given conditions
 def adjust_sl_tp():
+    global active_positions
     positions = mt5.positions_get()
     for pos in positions:
-        if pos not in active_positions:
+        if pos.ticket not in active_positions:
             continue
 
         symbol = pos.symbol
@@ -283,6 +288,7 @@ def adjust_sl_tp():
 
 # Function to delete pending orders scheduled for 1 AM
 def delete_pending_orders_at_1am():
+    global active_positions
     positions = mt5.positions_get()
 
     if not positions:

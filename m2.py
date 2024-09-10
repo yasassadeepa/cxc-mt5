@@ -227,6 +227,7 @@ def manage_trailing_stop(position):
             update_sl(position, new_sl)
 
 def monitor_triggered_orders(symbol):
+    global active_positions
     positions = mt5.positions_get(symbol=symbol)
     if positions:
         for pos in positions:
