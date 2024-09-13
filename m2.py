@@ -254,12 +254,29 @@ while True:
             low_trades = []
 
             sell_limit = place_pending_order(symbol, pre_high, volume, mt5.ORDER_TYPE_SELL_LIMIT)
+            if sell_limit is None:
+                continue
             high_trades.append(sell_limit)
+
             buy_stop = place_pending_order(symbol, pre_high, volume, mt5.ORDER_TYPE_BUY_STOP)
+            if buy_stop is None:
+                run_delete_order(sell_limit, symbol)
+                continue
             high_trades.append(buy_stop)
+
             buy_limit = place_pending_order(symbol, pre_low, volume, mt5.ORDER_TYPE_BUY_LIMIT)
+            if buy_limit is None:
+                run_delete_order(sell_limit, symbol)
+                run_delete_order(buy_stop, symbol)
+                continue
             low_trades.append(buy_limit)
+
             sell_stop = place_pending_order(symbol, pre_low, volume, mt5.ORDER_TYPE_SELL_STOP)
+            if sell_stop is None:
+                run_delete_order(sell_limit, symbol)
+                run_delete_order(buy_stop, symbol)
+                run_delete_order(buy_limit, symbol)
+                continue
             low_trades.append(sell_stop)
                 
             trade_group = [high_trades, low_trades]
