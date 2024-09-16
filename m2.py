@@ -11,11 +11,10 @@ pending_orders_dict = {}
 latest_candles_dict = {}
 pending_orders_list = []
 active_positions = []
-first_cond = False
 
 symbols = ["EURUSD", "AUDUSD", "GBPUSD"]
 volume = 20.0
-timeframe = mt5.TIMEFRAME_H4
+timeframe = mt5.TIMEFRAME_M15
 
 def get_previous_candle(symbol, timeframe):
     rates = mt5.copy_rates_from_pos(symbol, timeframe, 0, 2)
@@ -47,7 +46,7 @@ def check_is_new_candle(symbol, previous_time):
         latest_candles_dict[symbol] = previous_time
         return True
 
-def delete_pending_orders(symbol, tickets=None):
+def delete_pending_orders(symbol, tickets=None, order_type1=None, order_type2=None):
     orders = mt5.orders_get(symbol=symbol)
     if not orders:
         print(f"No pending orders to delete for {symbol}")
@@ -56,10 +55,11 @@ def delete_pending_orders(symbol, tickets=None):
     if tickets:
         for order in orders:
             if order.ticket in tickets:
-                run_delete_order(order.ticket, symbol)       
-    else:
-        for order in orders:
-            run_delete_order(order.ticket, symbol)
+                if order_type1 and order_type2:
+                    if order.comment == order_type1 or order.comment == order_type2:
+                        run_delete_order(order.ticket, symbol)
+                else:
+                     run_delete_order(order.ticket, symbol)    
     return
 
 def remove_item_and_clean(symbol, item_to_remove):
@@ -101,12 +101,11 @@ def run_delete_order(ticket, symbol):
         print(f"Failed to delete order {ticket} for {symbol}: {result.retcode}")
     else:
         remove_item_and_clean(symbol, ticket)
+        pending_orders_list.remove(ticket)
         print(f"Successfully deleted order {ticket} for {symbol}")
     return
 
 def place_pending_order(symbol, price, volume, order_type):
-    global first_cond
-    
     if order_type == mt5.ORDER_TYPE_BUY_STOP:
         comment = "M2 Buy Stop"
     elif order_type == mt5.ORDER_TYPE_BUY_LIMIT:
@@ -135,7 +134,6 @@ def place_pending_order(symbol, price, volume, order_type):
         print(f"Failed to place {order_type} order at {price} for {symbol}: {result.retcode}")
         return None
     else:
-        first_cond = True
         pending_orders_list.append(result.order)
         print(f"Placed {order_type} order at {price} for {symbol}")
         return result.order
@@ -165,7 +163,7 @@ def remove_opposite_trades(symbol, ticket, order_type1, order_type2):
             for target_ticket in new_trade_list:
                 target_tickets.append(target_ticket)
 
-        delete_pending_orders(symbol, target_tickets)            
+        delete_pending_orders(symbol, target_tickets, order_type1, order_type2)            
         return
 
 def remove_orders_for_positions(symbol):
@@ -247,8 +245,7 @@ while True:
 
         new_candle = check_is_new_candle(symbol, pre_time)
         if new_candle:
-            if first_cond:
-                delete_pending_orders(symbol, pending_orders_list)
+            delete_pending_orders(symbol, pending_orders_list)
 
             high_trades = []
             low_trades = []
@@ -289,6 +286,3 @@ while True:
         remove_orders_for_positions(symbol)
         monitor_triggered_orders(symbol)
         time.sleep(1)
-    
-    pending_orders_list.clear()
-    first_cond = False

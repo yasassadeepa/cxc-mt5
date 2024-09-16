@@ -66,14 +66,12 @@ def get_previous_day_high_low(symbol):
     print(f"Fetching data for PDHL - {symbol}")
 
     rates = mt5.copy_rates_range(symbol, mt5.TIMEFRAME_H1, start, end)
-    print("BBB",rates)
     if rates is not None and len(rates) >= 24:
         if symbol in missing_symbols_pdhl:
             missing_symbols_pdhl.remove(symbol)
 
         df = pd.DataFrame(rates)
         df['time'] = pd.to_datetime(df['time'], unit='s')
-        print(df[['time', 'open', 'high', 'low', 'close', 'tick_volume']])
         high = df['high'].max()
         low = df['low'].min()
         return high, low
@@ -88,7 +86,6 @@ def get_previous_asia_session_high_low(symbol):
     today = datetime.now()
     start = datetime(today.year, today.month, today.day, 5, 00)
     end = datetime(today.year, today.month, today.day, 13, 00)
-    print(f"Fetching data for AHL - {symbol}")
 
     rates = mt5.copy_rates_range(symbol, mt5.TIMEFRAME_H1, start, end)
 
@@ -97,7 +94,6 @@ def get_previous_asia_session_high_low(symbol):
             missing_symbols_ashl.remove(symbol)
         df = pd.DataFrame(rates)
         df['time'] = pd.to_datetime(df['time'], unit='s')
-        print(df[['time', 'open', 'high', 'low', 'close', 'tick_volume']])
         high = df['high'].max()
         low = df['low'].min()
         return high, low
