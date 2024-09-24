@@ -322,13 +322,16 @@ def run_get_previous_day_high_low(pre_day_currency_pairs):
             current_price = symbol_info.bid
             day_high, day_low = get_previous_day_high_low(pair)
             if day_high is not None and day_low is not None:
-                if current_price < day_high and current_price > day_low:
+                if current_price < day_high:
                     place_sell_limit(pair, day_high, lot_size)
                     place_buy_stop(pair, day_high, lot_size)
+                else:
+                    print(f"Current price ({current_price}) is outside previous day's high for {pair}. No orders placed.")
+                    
+                if  current_price > day_low:
                     place_buy_limit(pair, day_low, lot_size)
                     place_sell_stop(pair, day_low, lot_size)
                 else:
-                    print(f"Current price ({current_price}) is outside previous day's high for {pair}. No orders placed.")
                     print(f"Current price ({current_price}) is outside previous day's low for {pair}. No orders placed.")
             else:
                 print(f"Failed to retrieve previous day's high and low for {pair}.")
@@ -343,13 +346,15 @@ def run_get_previous_asia_session_high_low(asia_currency_pairs):
             current_price = symbol_info.bid
             asia_high, asia_low = get_previous_asia_session_high_low(pair)
             if asia_high is not None and asia_low is not None:
-                if current_price < asia_high and current_price > asia_low:
+                if current_price < day_high:
                     place_sell_limit(pair, asia_high, lot_size)
                     place_buy_stop(pair, asia_high, lot_size)
+                else:
+                    print(f"Current price ({current_price}) is outside Asia session's high for {pair}. No orders placed.")
+                if urrent_price > asia_low:
                     place_buy_limit(pair, asia_low, lot_size)
                     place_sell_stop(pair, asia_low, lot_size)
                 else:
-                    print(f"Current price ({current_price}) is outside Asia session's high for {pair}. No orders placed.")
                     print(f"Current price ({current_price}) is outside Asia session's low for {pair}. No orders placed.")
             else:
                 print(f"Failed to retrieve previous Asia session's high and low for {pair}.")
