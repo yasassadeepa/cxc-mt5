@@ -44,7 +44,7 @@ def get_user_inputs():
 # Function to get the previous day's high and low prices, considering weekends
 def get_previous_day_high_low(symbol):
     now = datetime.now() # 03:00
-    end = now.replace(hour=5, minute=00, second=0, microsecond=0) #18 05:00
+    end = now.replace(hour=6, minute=00, second=0, microsecond=0) #18 05:00
     # if now < end:
     #     end -= timedelta(days=1)
     
@@ -55,7 +55,7 @@ def get_previous_day_high_low(symbol):
         end -= timedelta(days=2)
 
     start = end - timedelta(days=1) # 17 05:00
-    start = start.replace(hour=5, minute=00, second=0, microsecond=0)
+    start = start.replace(hour=6, minute=00, second=0, microsecond=0)
     
     # Skip weekends
     if start.weekday() == 5:  # Saturday
@@ -84,8 +84,8 @@ def get_previous_day_high_low(symbol):
 # Function to get the previous Asia session's high and low prices (2:30 AM to 10:30 AM)
 def get_previous_asia_session_high_low(symbol):
     today = datetime.now()
-    start = datetime(today.year, today.month, today.day, 5, 00)
-    end = datetime(today.year, today.month, today.day, 13, 00)
+    start = datetime(today.year, today.month, today.day, 6, 00)
+    end = datetime(today.year, today.month, today.day, 14, 00)
 
     rates = mt5.copy_rates_range(symbol, mt5.TIMEFRAME_H1, start, end)
 
